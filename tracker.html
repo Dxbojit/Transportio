@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime location tracker</title>
+    <!-- leaflet css -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- leaflet js -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([14.0860746, 100.608406], 16); // Increased initial zoom level to 16
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        if (!navigator.geolocation) {
+            console.log("Your browser doesn't support geolocation feature!");
+        } else {
+            // Update location every 2 seconds
+            setInterval(getLocation, 2000);
+        }
+
+        var marker, circle;
+
+        function getLocation() {
+            navigator.geolocation.getCurrentPosition(getPosition, handleLocationError);
+        }
+
+        function getPosition(position) {
+            var lat = position.coords.latitude;
+            var long = position.coords.longitude;
+            var accuracy = position.coords.accuracy;
+
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            if (circle) {
+                map.removeLayer(circle);
+            }
+
+            marker = L.marker([lat-0.00015, long+0.00010]);
+            circle = L.circle([lat-0.00015, long+0.00010], { radius: 100 });
+
+            var featureGroup = L.featureGroup([marker, circle]).addTo(map);
+
+            // Adjust zoom level based on accuracy
+            map.setView([lat, long], map.getZoom()); // No need to adjust zoom level here
+
+            console.log("Your coordinate is: Lat: " + lat + " Long: " + long + " Accuracy: " + accuracy);
+        }
+
+        function handleLocationError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    console.error("User denied the request for Geolocation.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    console.error("Location information is unavailable.");
+                    break;
+                case error.TIMEOUT:
+                    console.error("The request to get user location timed out.");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    console.error("An unknown error occurred.");
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
